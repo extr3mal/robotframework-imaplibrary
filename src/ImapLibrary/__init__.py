@@ -23,6 +23,8 @@ from email import message_from_string
 from imaplib import IMAP4, IMAP4_SSL
 from re import findall
 from time import sleep, time
+from codecs import decode
+
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -129,10 +131,8 @@ class ImapLibrary(object):
         if self._is_walking_multipart(email_index):
             body = self.get_multipart_payload(decode=True)
         else:
-            body = self._imap.uid('fetch',
-                                  email_index,
-                                  '(BODY[TEXT])')[1][0][1].\
-                decode('quoted-printable')
+            encoded_body = self._imap.uid('fetch', email_index, '(BODY[TEXT])')[1][0][1]
+            body = decode(encoded_body, 'quopri_codec').decode('utf-8')
         return body
 
     def get_links_from_email(self, email_index):
